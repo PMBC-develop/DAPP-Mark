@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<!--script type="text/javascript" src="/static/js/bignumber.min.js"></script-->
+<script type="text/javascript" src="/static/js/dist/web3.js"></script>
+<script type="text/javascript">
+
+    var Web3 = require('web3');
+    var web3 = new Web3();
+    web3.setProvider(new web3.providers.HttpProvider());//local node
+    var pmbcContractAddress = '0xF0A818A43Bce4D22aca42E937A7cdd5AC612B5B9';
+    var pmbcABI =[
+	{
+		"constant": true,
+		"inputs": [],
+		"name": "name",
+		"outputs": [
+			{
+				"name": "",
+				"type": "string"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [],
+		"name": "totalSupply",
+		"outputs": [
+			{
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [],
+		"name": "decimals",
+		"outputs": [
+			{
+				"name": "",
+				"type": "uint8"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [
+			{
+				"name": "_owner",
+				"type": "address"
+			}
+		],
+		"name": "balanceOf",
+		"outputs": [
+			{
+				"name": "balance",
+				"type": "uint256"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [],
+		"name": "symbol",
+		"outputs": [
+			{
+				"name": "",
+				"type": "string"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": false,
+		"inputs": [
+			{
+				"name": "_to",
+				"type": "address"
+			},
+			{
+				"name": "_value",
+				"type": "uint256"
+			}
+		],
+		"name": "transfer",
+		"outputs": [],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"name": "from",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"name": "to",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"name": "value",
+				"type": "uint256"
+			}
+		],
+		"name": "Transfer",
+		"type": "event"
+	}
+];
+
+
+    function watchBalance() {
+        var account = document.getElementById('account').value;
+        var originalBalance = web3.fromWei(web3.eth.getBalance(account).toNumber());
+        document.getElementById('coinbase').innerText = 'Account: ' + account;
+        document.getElementById('original').innerText = 'Balance: ' + originalBalance;
+    }
+
+    function callExampleContract() {
+        var myContract = web3.eth.contract(pmbcABI).at(pmbcContractAddress);
+        var account = document.getElementById('pmbcaccount').value;
+        var res = web3.fromWei(myContract.balanceOf(account).toNumber());
+        document.getElementById('pmbcresult').innerText = res.toString(10)+' PMBC';
+    }
+
+      function doPMBCTransfer() {
+        document.getElementById('Ttransuccess').innerText ='something goes wrong...';
+        var myContract = web3.eth.contract(pmbcABI).at(pmbcContractAddress);
+        var from =document.getElementById('Tfrom').value;
+        var password = document.getElementById('Tpassword').value;
+        var to =document.getElementById('Tto').value;
+        var amount = web3.toWei(document.getElementById('Tamount').value, "ether");
+        web3.personal.unlockAccount(from, password, 1000);
+        //var getData = myContract.transfer.getData(to,amount);
+        //var res = web3.eth.sendTransaction({from: from, to:to, value:0, data: getData , gasLimit: 21000, gasPrice: 18000000000});
+          //var res = myContract.transfer.sendTransaction(to, amount, { from:from, gas: 100000 })
+        document.getElementById('Ttransuccess').innerText = 'transfer success: tx-id is '+res.toString(10);
+    }
+
+    function doETHTransfer() {
+        document.getElementById('transuccess').innerText ='something goes wrong...';
+        var from =document.getElementById('from').value;
+        var password = document.getElementById('password').value;
+        var to =document.getElementById('to').value;
+        var amount = web3.toWei(document.getElementById('amount').value, "ether");
+        web3.personal.unlockAccount(from, password, 1000);
+        var res = web3.eth.sendTransaction({from: from, to:to, value:amount, gasLimit: 21000, gasPrice: 18000000000});
+        document.getElementById('transuccess').innerText = 'transfer success: tx-id is '+res.toString(10);
+    }
+
+</script>
+
+
+</head>
+<body>
+
+
+    <h1>查询ETH余额</h1>
+    <input id="account" value="0x5c79ef6fecb7ebf5584da5fef87cbf544781eaec" size="80">
+    <button type="button" onClick="watchBalance()">查询</button>
+    <div></div>
+    <div id="coinbase"></div>
+    <div id="original"></div>
+
+
+
+    <h1>ETH转账</h1>
+<div id='transfer' >
+    from:<input id="from" size="80" value="0x5c79ef6fecb7ebf5584da5fef87cbf544781eaec"><br>
+    password:<input type="password" id="password" size="80"><br>
+    to:<input id="to" size="80" value="0x4c2e01a43a5b8e66b826d0c40ab7fa55f921ecd0"><br>
+    amount:<input type="number" id="amount" value="10.5"><br>
+    <input type="button" value="提交" onclick="doETHTransfer()">
+    </div>
+    <div id="transuccess"></div>
+
+
+    <br />
+    <h1>PMBC查询余额（调用合约静态方法）</h1>
+<div id='call' >
+       <input id="pmbcaccount" value="0x5c79ef6fecb7ebf5584da5fef87cbf544781eaec" size="80">
+    </div>
+    <div id="pmbcresult"></div>
+    <input type="button" value="查询" onclick="callExampleContract()">
+
+
+    <h1>PMBC转账（调用合约动态方法）</h1>
+<div id='transfer' >
+    from:<input id="Tfrom" size="80" value="0x5c79ef6fecb7ebf5584da5fef87cbf544781eaec"><br>
+    password:<input type="password" id="Tpassword" size="80"><br>
+    to:<input id="Tto" size="80" value="0x4c2e01a43a5b8e66b826d0c40ab7fa55f921ecd0"><br>
+    amount:<input type="number" id="Tamount" value="10.5"><br>
+    <input type="button" value="提交" onclick="doPMBCTransfer()">
+    </div>
+    <div id="Ttransuccess"></div>
+
+</body>
+</html>
+
